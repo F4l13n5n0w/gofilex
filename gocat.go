@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func sendFile(conn net.Conn, filepath string) {
+func sendFile(conn net.Conn, filepath, filesize string) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println("os.Open err", err)
@@ -16,6 +16,7 @@ func sendFile(conn net.Conn, filepath string) {
 	}
 	buf := make([]byte, 4096)
 
+	i := 1
 	for {
 		n, err := file.Read(buf)
 		if err == io.EOF {
@@ -27,6 +28,8 @@ func sendFile(conn net.Conn, filepath string) {
 			return
 		}
 		_, err = conn.Write(buf[:n])
+		fmt.Printf("%d / %s\n", (n * i), filesize)
+		i++
 		if err != nil {
 			fmt.Println("conn.Write err:", err)
 			return
@@ -43,6 +46,7 @@ func recvFile(conn net.Conn, outFile string) {
 		return
 	}
 
+	i := 1
 	for {
 		n, err := conn.Read(buf)
 		if n == 0 {
@@ -54,6 +58,8 @@ func recvFile(conn net.Conn, outFile string) {
 			return
 		}
 		file.Write(buf[:n])
+		fmt.Printf("[+] recving %d\n", (n * i))
+		i++
 	}
 }
 
@@ -106,7 +112,7 @@ func main() {
 			fmt.Printf("    filename: %s\n", filename)
 			fmt.Printf("    filensize: %s \n", filesize)
 
-			sendFile(conn, fileName)
+			sendFile(conn, fileName, filesize)
 		}
 	}
 
@@ -134,7 +140,7 @@ func main() {
 			fmt.Printf("    filename: %s\n", filename)
 			fmt.Printf("    filensize: %s \n", filesize)
 
-			sendFile(conn, fileName)
+			sendFile(conn, fileName, filesize)
 		}
 	}
 
