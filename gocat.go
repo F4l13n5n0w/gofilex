@@ -36,23 +36,6 @@ func sendFile(conn net.Conn, filepath string) {
 
 func recvFile(conn net.Conn, outFile string) {
 	buf := make([]byte, 4096)
-	n, err := conn.Read(buf)
-	if err != nil {
-		fmt.Println("conn.Read err:", err)
-		return
-	}
-	filename := string(buf[:n])
-	fmt.Println("filename:", filename)
-
-	if filename != "" {
-		_, err = conn.Write([]byte("ok"))
-		if err != nil {
-			fmt.Println("conn.Write err:", err)
-			return
-		}
-	} else {
-		return
-	}
 
 	file, err := os.Create(outFile)
 	if err != nil {
@@ -78,11 +61,11 @@ func main() {
 
 	if len(os.Args) != 5 {
 		fmt.Println("[!] Usage:")
-		fmt.Println("    ./gofile server(-l)/client(-n) listen_ip:port put/get filename")
-		fmt.Println("    E.g. ./gofile -l 127.0.0.1:7777 get output.txt")
-		fmt.Println("    or   ./gofile -l 127.0.0.1:7777 put input.txt")
-		fmt.Println("    E.g. ./gofile -n 127.0.0.1:7777 get output.txt")
-		fmt.Println("    or   ./gofile -n 127.0.0.1:7777 put input.txt")
+		fmt.Println("    ./gobaba server(-l)/client(-n) listen_ip:port put/get filename")
+		fmt.Println("    E.g. ./gobaba -l 127.0.0.1:7777 get output.txt")
+		fmt.Println("    or   ./gobaba -l 127.0.0.1:7777 put input.txt")
+		fmt.Println("    E.g. ./gobaba -n 127.0.0.1:7777 get output.txt")
+		fmt.Println("    or   ./gobaba -n 127.0.0.1:7777 put input.txt")
 		return
 	}
 
@@ -123,23 +106,7 @@ func main() {
 			fmt.Printf("    filename: %s\n", filename)
 			fmt.Printf("    filensize: %s \n", filesize)
 
-			_, err = conn.Write([]byte(filename))
-			if err != nil {
-				fmt.Println("conn.Write err", err)
-				return
-			}
-
-			buf := make([]byte, 4096)
-
-			n, err := conn.Read(buf)
-			if err != nil {
-				fmt.Println("conn.Read err", err)
-				return
-			}
-
-			if string(buf[:n]) == "ok" {
-				sendFile(conn, fileName)
-			}
+			sendFile(conn, fileName)
 		}
 	}
 
@@ -150,6 +117,10 @@ func main() {
 			return
 		}
 
+		if strCtrl == "get" {
+			recvFile(conn, fileName)
+		}
+
 		if strCtrl == "put" {
 			fileInfo, err := os.Stat(fileName)
 			if err != nil {
@@ -157,27 +128,13 @@ func main() {
 				return
 			}
 			filename := fileInfo.Name()
+			filesize := strconv.FormatInt(fileInfo.Size(), 10)
 
-			_, err = conn.Write([]byte(filename))
-			if err != nil {
-				fmt.Println("conn.Write err", err)
-				return
-			}
-			buf := make([]byte, 4096)
+			fmt.Println("[+] Sending file:")
+			fmt.Printf("    filename: %s\n", filename)
+			fmt.Printf("    filensize: %s \n", filesize)
 
-			n, err := conn.Read(buf)
-			if err != nil {
-				fmt.Println("conn.Read err", err)
-				return
-			}
-
-			if string(buf[:n]) == "ok" {
-				sendFile(conn, fileName)
-			}
-		}
-
-		if strCtrl == "get" {
-			recvFile(conn, fileName)
+			sendFile(conn, fileName)
 		}
 	}
 
