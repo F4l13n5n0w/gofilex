@@ -77,11 +77,11 @@ func main() {
 
 	if len(os.Args) != 5 {
 		fmt.Println("[!] Usage:")
-		fmt.Println("    ./gofile server/client listen_ip:port put/get filename")
+		fmt.Println("    ./gofile server(-l)/client(-n) listen_ip:port put/get filename")
 		fmt.Println("    E.g. ./gofile -l 127.0.0.1:7777 get output.txt")
 		fmt.Println("    or   ./gofile -l 127.0.0.1:7777 put input.txt")
-		fmt.Println("    E.g. ./gofile client 127.0.0.1:7777 get output.txt")
-		fmt.Println("    or   ./gofile client 127.0.0.1:7777 put input.txt")
+		fmt.Println("    E.g. ./gofile -n 127.0.0.1:7777 get output.txt")
+		fmt.Println("    or   ./gofile -n 127.0.0.1:7777 put input.txt")
 		return
 	}
 
@@ -92,6 +92,7 @@ func main() {
 	fileName := list[4]
 
 	if strSrvCli == "-l" {
+		fmt.Printf("[+] Listen on %s", strConn)
 		listener, err := net.Listen("tcp", strConn)
 		if err != nil {
 			fmt.Println("net.Listen err:", err)
@@ -135,7 +136,7 @@ func main() {
 		}
 	}
 
-	if strSrvCli == "client" {
+	if strSrvCli == "-n" {
 		conn, err := net.Dial("tcp", strConn)
 		if err != nil {
 			fmt.Println("net.Dialt err", err)
