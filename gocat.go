@@ -44,14 +44,7 @@ func recvFile(conn net.Conn, outFile string) {
 	filename := string(buf[:n])
 	fmt.Println("filename:", filename)
 
-	n, err = conn.Read(buf)
-	if err != nil {
-		fmt.Println("conn.Read err:", err)
-		return
-	}
-	filesize := string(buf[:n])
-	fmt.Println("filesize:", filesize)
-	if filename != "" && filesize != "" {
+	if filename != "" {
 		_, err = conn.Write([]byte("ok"))
 		if err != nil {
 			fmt.Println("conn.Write err:", err)
@@ -61,7 +54,6 @@ func recvFile(conn net.Conn, outFile string) {
 		return
 	}
 
-	//fmt.Println(filename)
 	file, err := os.Create(outFile)
 	if err != nil {
 		fmt.Println("os.Create err:", err)
@@ -132,12 +124,6 @@ func main() {
 			fmt.Printf("    filensize: %s \n", filesize)
 
 			_, err = conn.Write([]byte(filename))
-			if err != nil {
-				fmt.Println("conn.Write err", err)
-				return
-			}
-
-			_, err = conn.Write([]byte(filesize))
 			if err != nil {
 				fmt.Println("conn.Write err", err)
 				return
