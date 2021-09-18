@@ -6,6 +6,9 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
+
+	"github.com/schollz/progressbar"
 )
 
 func sendFile(conn net.Conn, filepath, filesize string) {
@@ -16,11 +19,11 @@ func sendFile(conn net.Conn, filepath, filesize string) {
 	}
 	buf := make([]byte, 4096)
 
-	i := 1
+	bar := progressbar.DefaultBytes(-1, "uploading")
 	for {
 		n, err := file.Read(buf)
 		if err == io.EOF {
-			fmt.Println("sent !!")
+			fmt.Println("\n[+] sent !!")
 			return
 		}
 		if err != nil {
@@ -28,12 +31,12 @@ func sendFile(conn net.Conn, filepath, filesize string) {
 			return
 		}
 		_, err = conn.Write(buf[:n])
-		fmt.Printf("%d / %s\n", (n * i), filesize)
-		i++
 		if err != nil {
 			fmt.Println("conn.Write err:", err)
 			return
 		}
+		bar.Add(n)
+		time.Sleep(time.Millisecond)
 	}
 }
 
@@ -46,11 +49,11 @@ func recvFile(conn net.Conn, outFile string) {
 		return
 	}
 
-	i := 1
+	bar := progressbar.DefaultBytes(-1, "downloading")
 	for {
 		n, err := conn.Read(buf)
 		if n == 0 {
-			fmt.Println("received !!")
+			fmt.Println("\n[+] received !!")
 			break
 		}
 		if err != nil {
@@ -58,8 +61,9 @@ func recvFile(conn net.Conn, outFile string) {
 			return
 		}
 		file.Write(buf[:n])
-		fmt.Printf("[+] recving %d\n", (n * i))
-		i++
+
+		bar.Add(n)
+		time.Sleep(time.Millisecond)
 	}
 }
 
